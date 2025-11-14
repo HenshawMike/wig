@@ -10,14 +10,14 @@ const Shop = () => {
   const categories = ["All", "Long", "Medium", "Short", "Curly", "Straight"];
 
   const products = [
-    { id: '1', name: "Luxe Midnight Waves", price: 599.99, image: "/placeholder.svg", category: "Long" },
-    { id: '2', name: "Royal Silk Bob", price: 449.99, image: "/placeholder.svg", category: "Medium" },
-    { id: '3', name: "Crown Curls Deluxe", price: 699.99, image: "/placeholder.svg", category: "Curly" },
-    { id: '4', name: "Regal Straight Flow", price: 549.99, image: "/placeholder.svg", category: "Straight" },
-    { id: '5', name: "Golden Hour Waves", price: 629.99, image: "/placeholder.svg", category: "Long" },
-    { id: '6', name: "Empress Pixie Cut", price: 399.99, image: "/placeholder.svg", category: "Short" },
-    { id: '7', name: "Diamond Locs", price: 799.99, image: "/placeholder.svg", category: "Long" },
-    { id: '8', name: "Velvet Bounce", price: 479.99, image: "/placeholder.svg", category: "Curly" },
+    { id: '1', name: "Luxe Midnight Waves", price: 599.99, image: "/placeholder.svg", category: "Long", stock: 12 },
+    { id: '2', name: "Royal Silk Bob", price: 449.99, image: "/placeholder.svg", category: "Medium", stock: 8 },
+    { id: '3', name: "Crown Curls Deluxe", price: 699.99, image: "/placeholder.svg", category: "Curly", stock: 5 },
+    { id: '4', name: "Regal Straight Flow", price: 549.99, image: "/placeholder.svg", category: "Straight", stock: 10 },
+    { id: '5', name: "Golden Hour Waves", price: 629.99, image: "/placeholder.svg", category: "Long", stock: 7 },
+    { id: '6', name: "Empress Pixie Cut", price: 399.99, image: "/placeholder.svg", category: "Short", stock: 4 },
+    { id: '7', name: "Diamond Locs", price: 799.99, image: "/placeholder.svg", category: "Long", stock: 2 },
+    { id: '8', name: "Velvet Bounce", price: 479.99, image: "/placeholder.svg", category: "Curly", stock: 9 },
   ];
 
   const filteredProducts =

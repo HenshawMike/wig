@@ -31,8 +31,8 @@ export const updateUser = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
 
-    const uid = context.auth.uid;
-    if (!(await isAdmin(uid))) {
+    const adminUid = context.auth.uid;
+    if (!(await isAdmin(adminUid))) {
         throw new functions.https.HttpsError('permission-denied', 'Only admins can update users.');
     }
 
@@ -50,8 +50,8 @@ export const deleteUser = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
 
-    const uid = context.auth.uid;
-    if (!(await isAdmin(uid))) {
+    const adminUid = context.auth.uid;
+    if (!(await isAdmin(adminUid))) {
         throw new functions.https.HttpsError('permission-denied', 'Only admins can delete users.');
     }
 

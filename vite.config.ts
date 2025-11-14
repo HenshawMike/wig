@@ -9,6 +9,15 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  // Exclude problematic deps from Vite's dependency optimizer when needed.
+  // If you still see errors referencing node_modules/.vite/deps/chunk-*.js, add
+  // other package names here (for example: 'zod', '@hookform/resolvers').
+  optimizeDeps: {
+    exclude: [
+      // lucide-react sometimes causes issues with the dep optimizer
+      'lucide-react',
+    ],
+  },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {

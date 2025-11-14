@@ -11,13 +11,20 @@ interface ProductCardProps {
   price: number;
   image: string;
   category: string;
+  stock: number;
 }
 
-const ProductCard = ({ id, name, price, image, category }: ProductCardProps) => {
+const ProductCard = ({ id, name, price, image, category, stock }: ProductCardProps) => {
   const [isLiked, setIsLiked] = useState(false);
   const { addToCart, isInCart } = useCart();
 
   const handleAddToCart = () => {
+    if (stock <= 0) {
+      // shouldn't happen because button is disabled, but guard anyway
+      toast({ title: 'Out of stock', description: 'This item is currently out of stock.' });
+      return;
+    }
+
     addToCart({
       id,
       name,
@@ -53,12 +60,18 @@ const ProductCard = ({ id, name, price, image, category }: ProductCardProps) => 
       <CardContent className="p-4 text-center">
         <h3 className="font-semibold text-sm sm:text-base text-foreground mb-2 line-clamp-2">{name}</h3>
         <p className="text-xl font-bold text-accent mb-4">${price.toFixed(2)}</p>
+        {/* Stock display */}
+        {stock > 0 ? (
+          <p className="text-sm font-medium text-green-600 mb-3">In stock: {stock}</p>
+        ) : (
+          <p className="text-sm font-medium text-destructive mb-3">Out of stock</p>
+        )}
         <Button 
           variant="luxury" 
           size="sm" 
           className="w-full"
           onClick={handleAddToCart}
-          disabled={isInCart(id)}
+          disabled={isInCart(id) || stock <= 0}
         >
           <ShoppingCart className="w-4 h-4 mr-2" />
           {isInCart(id) ? 'In Cart' : 'Add to Cart'}

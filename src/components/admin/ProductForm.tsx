@@ -198,6 +198,26 @@ export function ProductForm({ isEdit = false }: ProductFormProps) {
           </div>
 
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name *</Label>
+              <Input
+                id="name"
+                placeholder="Enter product name"
+                {...register('name')}
+                error={errors.name?.message}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                placeholder="Enter product description"
+                {...register('description')}
+                error={errors.description?.message}
+              />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="price">Price (₦) *</Label>

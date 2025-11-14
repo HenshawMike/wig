@@ -1,24 +1,27 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { getProducts } from "@/lib/db/products";
+import { Product } from "@/lib/db/products";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const Shop = () => {
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const categories = ["All", "Long", "Medium", "Short", "Curly", "Straight"];
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "products"), (snapshot) => {
+      const productsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[];
+      setProducts(productsData);
+    });
 
-  const products = [
-    { id: '1', name: "Luxe Midnight Waves", price: 599.99, image: "/placeholder.svg", category: "Long", stock: 12 },
-    { id: '2', name: "Royal Silk Bob", price: 449.99, image: "/placeholder.svg", category: "Medium", stock: 8 },
-    { id: '3', name: "Crown Curls Deluxe", price: 699.99, image: "/placeholder.svg", category: "Curly", stock: 5 },
-    { id: '4', name: "Regal Straight Flow", price: 549.99, image: "/placeholder.svg", category: "Straight", stock: 10 },
-    { id: '5', name: "Golden Hour Waves", price: 629.99, image: "/placeholder.svg", category: "Long", stock: 7 },
-    { id: '6', name: "Empress Pixie Cut", price: 399.99, image: "/placeholder.svg", category: "Short", stock: 4 },
-    { id: '7', name: "Diamond Locs", price: 799.99, image: "/placeholder.svg", category: "Long", stock: 2 },
-    { id: '8', name: "Velvet Bounce", price: 479.99, image: "/placeholder.svg", category: "Curly", stock: 9 },
-  ];
+    return () => unsubscribe();
+  }, []);
+
+  const categories = ["All", ...new Set(products.map(p => p.category))];
 
   const filteredProducts =
     selectedCategory === "All"
@@ -67,7 +70,7 @@ const Shop = () => {
               <div className="flex overflow-x-auto pb-4 -mx-4 px-4 gap-4">
                 {filteredProducts.map((product) => (
                   <div key={product.id} className="flex-shrink-0 w-[200px]">
-                    <ProductCard {...product} />
+                    <ProductCard {...product} price={product.price / 100} image={product.imageUrl} />
                   </div>
                 ))}
               </div>
@@ -76,7 +79,7 @@ const Shop = () => {
             {/* Desktop grid */}
             <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredProducts.map((product) => (
-                <ProductCard key={product.id} {...product} />
+                <ProductCard key={product.id} {...product} price={product.price / 100} image={product.imageUrl} />
               ))}
             </div>
           </div>

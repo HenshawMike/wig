@@ -4,6 +4,7 @@ import { Dashboard } from '@/pages/admin/Dashboard';
 import { ProductsPage } from '@/pages/admin/ProductsPage';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { AdminUsers } from '@/pages/admin/AdminUsers';
+import { SettingsPage } from '@/pages/admin/SettingsPage';
 
 export function AdminRoutes() {
   return (
@@ -15,7 +16,7 @@ export function AdminRoutes() {
           <Route path="products/new" element={<ProductForm />} />
           <Route path="products/edit/:id" element={<ProductForm isEdit />} />
           <Route path="users" element={<div>Users Management</div>} />
-          <Route path="settings" element={<div>Settings</div>} />
+          <Route path="settings" element={<SettingsPage />} />
           <Route path="admins" element={<AdminUsers />} />
         </Route>
       </Routes>

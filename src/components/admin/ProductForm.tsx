@@ -10,8 +10,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Loader2, X, Upload as UploadIcon  } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { addProduct, updateProduct, getProductById, toKobo, toNaira } from '@/lib/db/products';
+import { addProduct, updateProduct, getProductById, serverTimestamp } from '@/lib/db/products';
 import { string } from 'zod';
+
+// Price conversion functions
+const toKobo = (naira: number): number => Math.round(naira * 100);
+const toNaira = (kobo: number): number => kobo / 100;
 
 // Define the Product interface
 export interface Product {
@@ -63,7 +67,7 @@ export function ProductForm({ isEdit = false }: ProductFormProps) {
     const file = e.target.files?.[0];
     if (file) {
       // Set the file in the form
-      setValue('imageFile', file);
+      setValue('imageFile', file, { shouldValidate: true });
       
       // Create a preview URL for the image
       const previewUrl = URL.createObjectURL(file);
@@ -148,27 +152,63 @@ export function ProductForm({ isEdit = false }: ProductFormProps) {
       
       // Convert price from Naira string to kobo for storage
       const numericPrice = Number(formData.price.replace(/[^0-9.]/g, ''));
+      if (isNaN(numericPrice) || numericPrice <= 0) {
+        throw new Error('Please enter a valid price');
+      }
+      
       const priceInKobo = toKobo(numericPrice);
       
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: priceInKobo, // Store price in kobo
-        category: formData.category,
-        stock: formData.stock,
-        featured: formData.featured,
-        imageUrl: formData.imageUrl || '',
+      // Prepare product data
+      const productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        price: priceInKobo,
+        category: formData.category.trim(),
+        stock: Number(formData.stock) || 0,
+        featured: Boolean(formData.featured),
+        imageUrl: imagePreview || '',
       };
 
+      console.log('Submitting product data:', {
+        ...productData,
+        price: `₦${(productData.price / 100).toFixed(2)}`
+      });
+
       if (isEdit && id) {
-        await updateProduct(id, productData, formData.imageFile);
+        // Update existing product
+        console.log('Updating product with ID:', id);
+        
+        // Only include fields that have changed
+        const updateData: Partial<Product> = {
+          ...productData,
+          updatedAt: serverTimestamp()
+        };
+        
+        // If there's a new image, it will be handled by updateProduct
+        // If not, make sure we don't overwrite the existing image
+        if (!formData.imageFile && !updateData.imageUrl) {
+          delete updateData.imageUrl; // Keep the existing image
+        }
+        
+        console.log('Update data:', updateData);
+        await updateProduct(id, updateData, formData.imageFile);
+        
         toast({
           title: 'Success!',
           description: 'Product updated successfully',
           variant: 'default',
         });
       } else {
-        await addProduct(productData, formData.imageFile);
+        // Create new product
+        console.log('Creating new product');
+        
+        if (!formData.imageFile) {
+          throw new Error('Product image is required');
+        }
+        
+        const productId = await addProduct(productData, formData.imageFile);
+        console.log('New product created with ID:', productId);
+        
         toast({
           title: 'Success!',
           description: 'Product created successfully',
@@ -176,13 +216,19 @@ export function ProductForm({ isEdit = false }: ProductFormProps) {
         });
       }
       
-      navigate('/admin/products');
-    } catch (error) {
+      // Redirect to products list after a short delay
+      setTimeout(() => {
+        navigate('/admin/products');
+      }, 1000);
+      
+    } catch (error: any) {
       console.error('Error submitting form:', error);
       toast({
         title: 'Error',
-        description: 'An error occurred while saving the product',
+        description: error.message || 'An error occurred while saving the product',
+        variant: 'destructive',
       });
+    } finally {
       setLoading(false);
     }
   };

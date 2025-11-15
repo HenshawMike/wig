@@ -7,6 +7,7 @@ import { Product } from '@/lib/db/products';
 import { formatPrice } from '@/lib/db/products';
 import { useCart } from '@/contexts/CartContext';
 import Footer from '@/components/Footer';
+import Navigation from '@/components/Navigation';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -101,7 +102,8 @@ export default function ProductDetail() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="container mx-auto px-4 py-8 flex-grow mt-16">
+      <Navigation />
+      <div className="container mx-auto px-4 py-8 flex-grow mt-20">
       <Button 
         variant="ghost" 
         onClick={() => navigate(-1)}

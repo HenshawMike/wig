@@ -28,7 +28,7 @@ const Navigation = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <img
-              src="src/assets/logo.jpg"
+              src="/images/logo*.jpg"
               alt="Domtornyluxe Hairmpire logo"
               className="w-10 h-10 object-cover rounded-full transition-transform duration-300 group-hover:scale-110"
             />

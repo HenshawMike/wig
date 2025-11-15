@@ -8,12 +8,12 @@ import {
   User as FirebaseUser,
   updateProfile,
   onAuthStateChanged,
-  GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { createOrUpdateUser } from '@/lib/db/users';
 import { isAdmin } from '@/lib/db/admin';
 
 interface User {
@@ -118,12 +118,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           displayName: name,
         });
         
+        // Create user document in Firestore
+        await createOrUpdateUser(userCredential.user, {
+          displayName: name,
+          isAdmin: false
+        });
+        
         // Update local state with the new user data
         setUser({
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: name,
-          photoURL: userCredential.user.photoURL
+          photoURL: userCredential.user.photoURL,
+          isAdmin: false
         });
       }
       

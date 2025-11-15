@@ -56,8 +56,8 @@ const Shop = () => {
     <>
       <Navigation />
       <main className="min-h-screen pt-20">
-        {/* Header */}
-        <section className="relative py-24 bg-cover bg-center" style={{ backgroundImage: 'url("/src/assets/logo*.jpg")' }}>
+        {/* Hero Section */}
+        <section className="relative py-24 bg-cover bg-center" style={{ backgroundImage: 'url("/src/assets/logo.jpg")' }}>
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
           <div className="container mx-auto px-4 relative z-10">
             <h1 className="text-4xl md:text-5xl font-bold text-center text-white mb-4 drop-shadow-lg">

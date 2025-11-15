@@ -104,6 +104,7 @@ export function ProductsPage() {
             <TableRow>
               <TableHead>Image</TableHead>
               <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Stock</TableHead>
@@ -123,6 +124,9 @@ export function ProductsPage() {
                     />
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell className="max-w-[200px] truncate" title={product.description || 'No description'}>
+                    {product.description || '-'}
+                  </TableCell>
                   <TableCell className="capitalize">{product.category}</TableCell>
                   <TableCell>${product.price.toFixed(2)}</TableCell>
                   <TableCell>{product.stock}</TableCell>
@@ -165,7 +169,7 @@ export function ProductsPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   No products found.
                 </TableCell>
               </TableRow>

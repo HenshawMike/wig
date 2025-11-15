@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+ import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 
 export interface CartItem {
@@ -7,6 +7,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  stock: number;
 }
 
 interface CartContextType {

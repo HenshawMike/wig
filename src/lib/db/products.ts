@@ -21,11 +21,10 @@ const PRODUCTS_COLLECTION = 'products';
 export interface Product {
   id?: string;
   name: string;
-  description: string;
   price: number; // Price in kobo (1 Naira = 100 kobo) for precision
   category: string;
   stock: number;
-  featured: boolean;
+  description: string;
   imageUrl: string;
   createdAt?: any;
   updatedAt?: any;

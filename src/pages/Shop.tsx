@@ -1,29 +1,56 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getProducts, getProductCategories } from "@/services/productService";
+import { Product } from "@/types/product";
 import { Button } from "@/components/ui/button";
 
 const Shop = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [categories, setCategories] = useState<string[]>(["All"]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
-  const categories = ["All", "Long", "Medium", "Short", "Curly", "Straight"];
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const fetchedCategories = await getProductCategories();
+        setCategories(['All', ...fetchedCategories]);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
 
-  const products = [
-    { id: '1', name: "Luxe Midnight Waves", price: 599.99, image: "/placeholder.svg", category: "Long", stock: 12 },
-    { id: '2', name: "Royal Silk Bob", price: 449.99, image: "/placeholder.svg", category: "Medium", stock: 8 },
-    { id: '3', name: "Crown Curls Deluxe", price: 699.99, image: "/placeholder.svg", category: "Curly", stock: 5 },
-    { id: '4', name: "Regal Straight Flow", price: 549.99, image: "/placeholder.svg", category: "Straight", stock: 10 },
-    { id: '5', name: "Golden Hour Waves", price: 629.99, image: "/placeholder.svg", category: "Long", stock: 7 },
-    { id: '6', name: "Empress Pixie Cut", price: 399.99, image: "/placeholder.svg", category: "Short", stock: 4 },
-    { id: '7', name: "Diamond Locs", price: 799.99, image: "/placeholder.svg", category: "Long", stock: 2 },
-    { id: '8', name: "Velvet Bounce", price: 479.99, image: "/placeholder.svg", category: "Curly", stock: 9 },
-  ];
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const { products: fetchedProducts } = await getProducts({ 
+          limit: 50,
+          ...(selectedCategory !== 'All' ? { category: selectedCategory } : {})
+        });
+        setProducts(fetchedProducts);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filteredProducts =
-    selectedCategory === "All"
-      ? products
-      : products.filter((product) => product.category === selectedCategory);
+    fetchCategories();
+    fetchProducts();
+  }, [selectedCategory]);
+
+  // Filter products based on selected category on the client side as a fallback
+  const filteredProducts = selectedCategory === 'All' 
+    ? products 
+    : products.filter(product => product.category === selectedCategory);
 
   return (
     <>
@@ -46,39 +73,92 @@ const Shop = () => {
         <section className="py-8 border-b border-border">
           <div className="container mx-auto px-4">
             <div className="flex flex-wrap gap-3 justify-center">
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "luxury" : "outline"}
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Button>
-              ))}
+              {!categoriesLoading ? (
+                categories.map((category) => (
+                  <Button
+                    key={category}
+                    variant={selectedCategory === category ? "default" : "outline"}
+                    onClick={() => setSelectedCategory(category)}
+                    className="capitalize"
+                  >
+                    {category}
+                  </Button>
+                ))
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-10 w-20 bg-gray-200 rounded-md animate-pulse"></div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>
 
         {/* Products Grid */}
-        <section className="py-16">
+        <section className="py-12">
           <div className="container mx-auto px-4">
-            {/* Mobile horizontal scroll */}
-            <div className="md:hidden">
-              <div className="flex overflow-x-auto pb-4 -mx-4 px-4 gap-4">
-                {filteredProducts.map((product) => (
-                  <div key={product.id} className="flex-shrink-0 w-[200px]">
-                    <ProductCard {...product} />
-                  </div>
-                ))}
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
-            </div>
-            
-            {/* Desktop grid */}
-            <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
-            </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-destructive">{error}</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => window.location.reload()}
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Mobile horizontal scroll */}
+                <div className="md:hidden">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {filteredProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      id={product.id || ''}
+                      name={product.name}
+                      price={product.price}
+                      image={product.imageUrl}
+                      category={product.category}
+                      stock={product.stock}
+                    />
+                  ))}
+                  {filteredProducts.length === 0 && !loading && (
+                    <div className="col-span-full text-center py-12">
+                      <p className="text-lg text-muted-foreground">No products found in this category.</p>
+                    </div>
+                  )}
+                </div>
+                </div>
+                
+                {!loading && !error && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {filteredProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        id={product.id || ''}
+                        name={product.name}
+                        price={product.price}
+                        image={product.imageUrl}
+                        category={product.category}
+                        stock={product.stock}
+                      />
+                    ))}
+                    {filteredProducts.length === 0 && (
+                      <div className="col-span-full text-center py-12">
+                        <p className="text-lg text-muted-foreground">No products found in this category.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </section>
       </main>

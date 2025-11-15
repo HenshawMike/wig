@@ -7,6 +7,7 @@ import { Plus, Search, Edit, Trash2, Loader2 } from 'lucide-react';
 import { Product } from '@/types/product';
 import { getProducts, deleteProduct } from '@/services/productService';
 import { useToast } from '@/components/ui/use-toast';
+import { Footer } from 'react-day-picker';
 
 export function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);

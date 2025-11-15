@@ -14,34 +14,62 @@ export const getProducts = async (filters: {
   try {
     const { limit: itemsLimit = 10, lastVisible, category, featured } = filters;
     
-    let q = query(
-      collection(db, PRODUCTS_COLLECTION),
-      orderBy('createdAt', 'desc')
-    );
-
+    let q;
+    
     if (category) {
-      q = query(q, where('category', '==', category));
+      // When filtering by category, we'll do the sorting on the client side to avoid composite index
+      q = query(
+        collection(db, PRODUCTS_COLLECTION),
+        where('category', '==', category),
+        limit(itemsLimit)
+      );
+    } else {
+      // For all products, we can still sort by createdAt
+      q = query(
+        collection(db, PRODUCTS_COLLECTION),
+        orderBy('createdAt', 'desc'),
+        limit(itemsLimit)
+      );
+      
+      if (lastVisible) {
+        q = query(q, startAfter(lastVisible));
+      }
     }
     
     if (featured !== undefined) {
       q = query(q, where('featured', '==', featured));
     }
-
-    if (lastVisible) {
-      q = query(q, startAfter(lastVisible));
-    }
-
-    q = query(q, limit(itemsLimit));
     
     const querySnapshot = await getDocs(q);
     const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
     
-    const products = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Product[];
+    let products = querySnapshot.docs.map(doc => {
+      const data = doc.data() as Omit<Product, 'id'> & {
+        createdAt: any;
+        updatedAt: any;
+      };
+      
+      return {
+        id: doc.id,
+        name: data.name,
+        price: data.price,
+        description: data.description,
+        imageUrl: data.imageUrl,
+        category: data.category,
+        featured: data.featured,
+        stock: data.stock,
+        // Handle both Timestamp and Date objects
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt,
+      } as Product;
+    });
+    
+    // If we didn't sort on the server (due to category filter), sort on client
+    if (filters.category) {
+      products = products.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
     
     return { products, lastVisible: lastVisibleDoc };
   } catch (error) {
@@ -59,11 +87,13 @@ export const getProductById = async (id: string): Promise<Product | null> => {
       return null;
     }
     
+    const data = docSnap.data();
     return {
       id: docSnap.id,
-      ...docSnap.data(),
-      createdAt: docSnap.data().createdAt?.toDate(),
-      updatedAt: docSnap.data().updatedAt?.toDate(),
+      ...data,
+      // Handle both Timestamp and Date objects
+      createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+      updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt,
     } as Product;
   } catch (error) {
     console.error('Error getting product:', error);
@@ -126,6 +156,25 @@ export const updateProduct = async (id: string, productData: Partial<ProductForm
   } catch (error) {
     console.error('Error updating product:', error);
     throw error;
+  }
+};
+
+export const getProductCategories = async (): Promise<string[]> => {
+  try {
+    const querySnapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
+    const categories = new Set<string>();
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.category) {
+        categories.add(data.category);
+      }
+    });
+
+    return Array.from(categories).sort();
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return [];
   }
 };
 

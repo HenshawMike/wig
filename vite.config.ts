@@ -1,46 +1,41 @@
 /// <reference types="vite/client" />
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Extend the ImportMeta interface to include Vite's env variables
-interface ImportMetaEnv {
-  readonly VITE_SUPABASE_URL: string;
-  // add other environment variables here as needed
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
-
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-    cors: true,
-    proxy: {
-      // Proxy API requests to Supabase
-      '/storage/v1': {
-        target: import.meta.env.VITE_SUPABASE_URL,
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/storage\/v1/, '/storage/v1')
+export default defineConfig(({ mode }) => {
+  // Load env file based on `mode` in the current working directory.
+  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
+  const env = loadEnv(mode, process.cwd(), '');
+
+  return {
+    server: {
+      host: "::",
+      port: 8080,
+      cors: true,
+      proxy: {
+        // Proxy API requests to Supabase
+        '/storage/v1': {
+          target: env.VITE_SUPABASE_URL,
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/storage\/v1/, '/storage/v1')
+        },
+        '/rest/v1': {
+          target: env.VITE_SUPABASE_URL,
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/rest\/v1/, '/rest/v1')
+        },
+        '/auth/v1': {
+          target: env.VITE_SUPABASE_URL,
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/auth\/v1/, '/auth/v1')
+        }
       },
-      '/rest/v1': {
-        target: import.meta.env.VITE_SUPABASE_URL,
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/rest\/v1/, '/rest/v1')
-      },
-      '/auth/v1': {
-        target: import.meta.env.VITE_SUPABASE_URL,
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/auth\/v1/, '/auth/v1')
-      }
-    },
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',

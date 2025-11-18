@@ -1,7 +1,27 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { UserData } from '@/lib/db/users';
+import { toast } from '@/components/ui/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -18,6 +38,14 @@ export function UsersPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    displayName: '',
+    email: '',
+    isAdmin: false,
+  });
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -67,6 +95,81 @@ export function UsersPage() {
     return d.toLocaleString();
   };
 
+  const handleEditClick = (user: UserData) => {
+    setEditingUser(user);
+    setEditFormData({
+      displayName: user.displayName || '',
+      email: user.email || '',
+      isAdmin: user.isAdmin || false,
+    });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    try {
+      const userRef = doc(db, 'users', editingUser.uid);
+      await updateDoc(userRef, {
+        displayName: editFormData.displayName,
+        email: editFormData.email,
+        isAdmin: editFormData.isAdmin,
+        updatedAt: new Date(),
+      });
+
+      // Update local state
+      setUsers(users.map(user => 
+        user.uid === editingUser.uid 
+          ? { ...user, ...editFormData }
+          : user
+      ));
+
+      setEditingUser(null);
+      toast({
+        title: 'Success',
+        description: 'User updated successfully',
+      });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update user',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteClick = (userId: string) => {
+    setUserToDelete(userId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      await deleteDoc(doc(db, 'users', userToDelete));
+      
+      // Update local state
+      setUsers(users.filter(user => user.uid !== userToDelete));
+      
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      
+      toast({
+        title: 'Success',
+        description: 'User deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete user',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto py-10">
       <Card>
@@ -109,10 +212,19 @@ export function UsersPage() {
                       <TableCell>{user.isAdmin ? 'Yes' : 'No'}</TableCell>
                       <TableCell>{formatDate(user.lastLoginAt)}</TableCell>
                       <TableCell>
-                        <Button variant="outline" size="sm" className="mr-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mr-2"
+                          onClick={() => handleEditClick(user)}
+                        >
                           Edit
                         </Button>
-                        <Button variant="destructive" size="sm">
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => handleDeleteClick(user.uid)}
+                        >
                           Delete
                         </Button>
                       </TableCell>
@@ -130,6 +242,88 @@ export function UsersPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit User Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <form onSubmit={handleEditSubmit}>
+            <DialogHeader>
+              <DialogTitle>Edit User</DialogTitle>
+              <DialogDescription>
+                Update user details below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={editFormData.email}
+                  onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="displayName" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="displayName"
+                  value={editFormData.displayName}
+                  onChange={(e) => setEditFormData({...editFormData, displayName: e.target.value})}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isAdmin"
+                  checked={editFormData.isAdmin}
+                  onChange={(e) => setEditFormData({...editFormData, isAdmin: e.target.checked})}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label
+                  htmlFor="isAdmin"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Administrator
+                </label>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditingUser(null)}>
+                Cancel
+              </Button>
+              <Button type="submit">Save changes</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the user account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

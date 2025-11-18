@@ -124,7 +124,7 @@ const Shop = () => {
                       id={product.id || ''}
                       name={product.name}
                       price={product.price}
-                      image={product.imageUrl}
+                      image={product.imageUrl || ''}
                       category={product.category}
                       stock={product.stock}
                     />
@@ -145,7 +145,7 @@ const Shop = () => {
                         id={product.id || ''}
                         name={product.name}
                         price={product.price}
-                        image={product.imageUrl}
+                        image={product.imageUrl || ''}
                         category={product.category}
                         stock={product.stock}
                       />

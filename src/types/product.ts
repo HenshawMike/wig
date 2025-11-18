@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 export type Product = {
   id?: string; // Will be set by Firestore
   name: string;
@@ -7,8 +9,8 @@ export type Product = {
   imageUrl: string;
   stock: number;
   featured: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | Timestamp;
+  updatedAt?: Date | Timestamp;
 };
 
 export type ProductFormData = Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & {

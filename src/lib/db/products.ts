@@ -15,6 +15,8 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 
+export { serverTimestamp } from 'firebase/firestore';
+
 const PRODUCTS_COLLECTION = 'products';
 
 // Types
@@ -71,10 +73,12 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 
 // Add a new product
 export const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>, imageFile?: File): Promise<string> => {
+  // If we already have an imageUrl (from Supabase), use it directly
+  // Otherwise, upload to Firebase Storage if imageFile is provided
   let imageUrl = product.imageUrl || '';
   
-  // Upload image if provided
-  if (imageFile) {
+  // Only upload to Firebase Storage if we don't have a URL and have a file
+  if (!imageUrl && imageFile) {
     const storageRef = ref(storage, `products/${uuidv4()}_${imageFile.name}`);
     await uploadBytes(storageRef, imageFile);
     imageUrl = await getDownloadURL(storageRef);
@@ -97,20 +101,23 @@ export const updateProduct = async (id: string, product: Partial<Product>, image
     updatedAt: serverTimestamp(),
   };
   
-  // Handle image upload if new image is provided
-  if (imageFile) {
+  // If we have a new image file but no imageUrl in the product data,
+  // it means we're using Firebase Storage
+  if (imageFile && !product.imageUrl) {
     // Delete old image if exists
     const oldProduct = await getProductById(id);
-    if (oldProduct?.imageUrl) {
+    if (oldProduct?.imageUrl && oldProduct.imageUrl.includes('firebasestorage')) {
       const oldImageRef = ref(storage, oldProduct.imageUrl);
       await deleteObject(oldImageRef).catch(console.error);
     }
     
-    // Upload new image
+    // Upload new image to Firebase Storage
     const storageRef = ref(storage, `products/${uuidv4()}_${imageFile.name}`);
     await uploadBytes(storageRef, imageFile);
     updateData.imageUrl = await getDownloadURL(storageRef);
   }
+  // If imageUrl is provided in the product data, it's already uploaded to Supabase
+  // so we don't need to do anything special
   
   const docRef = doc(db, PRODUCTS_COLLECTION, id);
   await updateDoc(docRef, updateData);

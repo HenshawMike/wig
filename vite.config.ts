@@ -1,13 +1,51 @@
+/// <reference types="vite/client" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+
+// Extend the ImportMeta interface to include Vite's env variables
+interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL: string;
+  // add other environment variables here as needed
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    cors: true,
+    proxy: {
+      // Proxy API requests to Supabase
+      '/storage/v1': {
+        target: import.meta.env.VITE_SUPABASE_URL,
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/storage\/v1/, '/storage/v1')
+      },
+      '/rest/v1': {
+        target: import.meta.env.VITE_SUPABASE_URL,
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/rest\/v1/, '/rest/v1')
+      },
+      '/auth/v1': {
+        target: import.meta.env.VITE_SUPABASE_URL,
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/auth\/v1/, '/auth/v1')
+      }
+    },
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
+    },
   },
   // Exclude problematic deps from Vite's dependency optimizer when needed.
   // If you still see errors referencing node_modules/.vite/deps/chunk-*.js, add

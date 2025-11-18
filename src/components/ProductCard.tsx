@@ -48,24 +48,27 @@ const ProductCard = ({ id, name, price, image, category, stock }: ProductCardPro
   return (
     <Card className="group bg-card border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 rounded-2xl w-full">
       <div className="relative">
-        <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl">
-          <Link to={`/product/${id}`} className="block h-full">
-            <div className="absolute inset-0 flex items-center justify-center p-4 bg-gray-50">
-              <div className={`absolute inset-0 bg-gray-100 transition-opacity duration-300 ${imageLoaded ? 'opacity-0' : 'opacity-100'}`}></div>
+        <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl bg-gray-50">
+          <Link to={`/product/${id}`} className="block h-full w-full">
+            {image ? (
               <img
                 ref={imgRef}
                 src={image}
                 alt={name}
-                className={`w-full h-full object-contain transition-all duration-500 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} group-hover:scale-105`}
+                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
                 onLoad={() => setImageLoaded(true)}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
-                  target.src = '/placeholder-product.jpg';
-                  setImageLoaded(true);
+                  target.src = '';
+                  setImageLoaded(false);
                 }}
               />
-            </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <span className="text-gray-400">No image</span>
+              </div>
+            )}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full bg-primary/90 backdrop-blur-sm">
               <span className="text-xs text-primary-foreground">{category}</span>
             </div>
@@ -96,6 +99,13 @@ const ProductCard = ({ id, name, price, image, category, stock }: ProductCardPro
                 <h3 className="font-medium text-foreground">{name}</h3>
               </Link>
               <p className="text-sm text-muted-foreground capitalize">{category}</p>
+              {stock > 0 ? (
+                <p className="text-xs text-green-600 mt-1">
+                  In Stock: {stock} {stock === 1 ? 'item' : 'items'}
+                </p>
+              ) : (
+                <p className="text-xs text-red-600 mt-1">Out of Stock</p>
+              )}
             </div>
             <div className="text-lg font-semibold">
               ${price.toFixed(2)}
@@ -114,7 +124,7 @@ const ProductCard = ({ id, name, price, image, category, stock }: ProductCardPro
             disabled={isInCart(id) || stock <= 0}
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
-            {isInCart(id) ? 'In Cart' : 'Add to Cart'}
+            {stock <= 0 ? 'Out of Stock' : isInCart(id) ? 'In Cart' : 'Add to Cart'}
           </Button>
         </div>
       </CardContent>

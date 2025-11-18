@@ -2,7 +2,7 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 import { 
-  signInWithEmailAndPassword, 
+  signInWithEmailAndPassword,
   createUserWithEmailAndPassword, 
   signOut,
   User as FirebaseUser,
@@ -10,12 +10,13 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   signInWithRedirect,
-  getRedirectResult
+  getRedirectResult,
+  GoogleAuthProvider,
+  GoogleAuthProvider as GoogleAuthProviderType
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { createOrUpdateUser } from '@/lib/db/users';
 import { isAdmin } from '@/lib/db/admin';
-
 interface User {
   uid: string;
   email: string | null;

@@ -121,7 +121,12 @@ export default function ProductDetail() {
               alt={product.name}
               className="w-full h-full object-cover"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/placeholder-product.jpg';
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = 'w-full h-full bg-gray-100 flex items-center justify-center';
+                fallback.textContent = 'Image not available';
+                target.parentNode?.insertBefore(fallback, target.nextSibling);
               }}
             />
           ) : (

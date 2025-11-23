@@ -36,57 +36,86 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Accept': '*/*',
       'Access-Control-Allow-Origin': '*',
     },
+  },
+  db: {
+    schema: 'public',
+  },
+  // Configure storage to handle file uploads with proper content types
+  storage: {
+    // Supabase will automatically set the content-type based on the file extension
   },
 });
 
 // Set the storage endpoint
 const STORAGE_BUCKET = 'products';
 
+interface UploadResult {
+  path: string;
+  url: string;
+}
+
 /**
  * Uploads a file to Supabase Storage
  * @param file - The file to upload
  * @param path - The path in the storage bucket (e.g., 'images')
- * @returns Promise with the public URL of the uploaded file
+ * @returns Promise with the path and public URL of the uploaded file
+ * @throws {Error} If file or path is not provided, or if upload fails
  */
-export async function uploadFile(file: File, path: string): Promise<{ path: string; url: string }> {
-  try {
-    const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-    const filePath = path ? `${path}/${fileName}` : fileName;
+export async function uploadFile(file: File, path: string): Promise<UploadResult> {
+  // Input validation
+  if (!file) {
+    throw new Error('No file provided');
+  }
 
-    // 1. First upload the file
+  if (!path) {
+    throw new Error('No path provided');
+  }
+
+  try {
+    // Sanitize and create file path
+    const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_').toLowerCase()}`;
+    const filePath = `${path.endsWith('/') ? path : `${path}/`}${fileName}`;
+
+    // Upload the file
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false,
+        upsert: true, // Changed to true to handle duplicate uploads gracefully
       });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
       throw new Error(`Upload failed: ${uploadError.message}`);
     }
 
-    // 2. Get the public URL
+    if (!uploadData?.path) {
+      throw new Error('Upload succeeded but no path was returned');
+    }
+
+    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from(STORAGE_BUCKET)
-      .getPublicUrl(filePath);
+      .getPublicUrl(uploadData.path);
 
-    console.log('File uploaded successfully:', {
-      path: filePath,
-      publicUrl,
+    if (!publicUrl) {
+      throw new Error('Failed to generate public URL');
+    }
+
+    console.log('File uploaded successfully:', { 
+      path: uploadData.path, 
+      url: publicUrl 
     });
 
-    return {
-      path: filePath,
-      url: publicUrl,
+    return { 
+      path: uploadData.path, 
+      url: publicUrl 
     };
   } catch (error) {
-    console.error('Error in uploadFile:', error);
-    throw error;
+    console.error('Error uploading file:', error);
+    throw new Error(error instanceof Error ? error.message : 'An unknown error occurred');
   }
 }
 

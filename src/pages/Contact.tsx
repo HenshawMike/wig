@@ -8,8 +8,20 @@ import { Mail, Phone, MapPin } from "lucide-react";
 const Contact = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Form submission logic will be added later
-    console.log("Form submitted");
+    
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const formValues = Object.fromEntries(formData.entries());
+    
+    const subject = encodeURIComponent('Contact Form Submission');
+    const body = encodeURIComponent(
+      `Name: ${formValues.name}\n` +
+      `Email: ${formValues.email}\n` +
+      `Phone: ${formValues.phone || 'Not provided'}\n\n` +
+      `Message:\n${formValues.message}`
+    );
+    
+    window.location.href = `mailto:abametimprecious@gmail.com?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -41,6 +53,7 @@ const Contact = () => {
                     </label>
                     <Input
                       type="text"
+                      name="name"
                       placeholder="Your name"
                       required
                       className="w-full"
@@ -52,6 +65,7 @@ const Contact = () => {
                     </label>
                     <Input
                       type="email"
+                      name="email"
                       placeholder="your.email@example.com"
                       required
                       className="w-full"
@@ -63,7 +77,8 @@ const Contact = () => {
                     </label>
                     <Input
                       type="tel"
-                      placeholder="+1 (555) 000-0000"
+                      name="phone"
+                      placeholder="+234 801 234 5678"
                       className="w-full"
                     />
                   </div>
@@ -72,6 +87,7 @@ const Contact = () => {
                       Message
                     </label>
                     <Textarea
+                      name="message"
                       placeholder="Tell us what you're looking for..."
                       required
                       rows={5}
@@ -95,7 +111,7 @@ const Contact = () => {
                     <div>
                       <h3 className="font-semibold mb-1">Email</h3>
                       <p className="text-muted-foreground">
-                        info@domtornyluxehairmpire.com
+                        abametimprecious@gmail.com
                       </p>
                     </div>
                   </div>

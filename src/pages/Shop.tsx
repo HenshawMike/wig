@@ -107,20 +107,42 @@ const Shop = () => {
                 <p className="text-destructive">{error}</p>
                 <Button 
                   variant="outline" 
-                  className="mt-4"
                   onClick={() => window.location.reload()}
                 >
                   Retry
                 </Button>
               </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-lg text-muted-foreground">No products found in this category.</p>
+              </div>
             ) : (
               <>
                 {/* Mobile horizontal scroll */}
                 <div className="md:hidden">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {filteredProducts.map((product) => (
+                  <div className="flex overflow-x-auto pb-4 -mx-4 px-4">
+                    <div className="flex space-x-4">
+                      {filteredProducts.map((product, index) => (
+                        <div key={index} className="w-64 flex-shrink-0">
+                          <ProductCard
+                            id={product.id || ''}
+                            name={product.name}
+                            price={product.price}
+                            image={product.imageUrl || ''}
+                            category={product.category}
+                            stock={product.stock}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Desktop grid */}
+                <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filteredProducts.map((product, index) => (
                     <ProductCard
-                      key={product.id}
+                      key={index}
                       id={product.id || ''}
                       name={product.name}
                       price={product.price}
@@ -129,40 +151,12 @@ const Shop = () => {
                       stock={product.stock}
                     />
                   ))}
-                  {filteredProducts.length === 0 && !loading && (
-                    <div className="col-span-full text-center py-12">
-                      <p className="text-lg text-muted-foreground">No products found in this category.</p>
-                    </div>
-                  )}
                 </div>
-                </div>
-                
-                {!loading && !error && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {filteredProducts.map((product) => (
-                      <ProductCard
-                        key={product.id}
-                        id={product.id || ''}
-                        name={product.name}
-                        price={product.price}
-                        image={product.imageUrl || ''}
-                        category={product.category}
-                        stock={product.stock}
-                      />
-                    ))}
-                    {filteredProducts.length === 0 && (
-                      <div className="col-span-full text-center py-12">
-                        <p className="text-lg text-muted-foreground">No products found in this category.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
               </>
             )}
           </div>
         </section>
       </main>
-      <Footer />
     </>
   );
 };

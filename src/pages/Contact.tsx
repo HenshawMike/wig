@@ -105,7 +105,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Phone</h3>
-                      <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                      <p className="text-muted-foreground">+23480147188319 </p>
                     </div>
                   </div>
                   <div className="flex gap-4">
@@ -115,9 +115,9 @@ const Contact = () => {
                     <div>
                       <h3 className="font-semibold mb-1">Location</h3>
                       <p className="text-muted-foreground">
-                        123 Luxury Avenue
+                        Dn Sam Nujoma housing Estate
                         <br />
-                        Beauty District, City 12345
+                        Galadinmawa, Abuja.
                       </p>
                     </div>
                   </div>

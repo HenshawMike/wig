@@ -1,10 +1,10 @@
 [build]
   command = "npm run build"
   publish = "dist"
-  environment = { 
-    NODE_VERSION = "18",
-    SECRETS_SCAN_OMIT_KEYS = "VITE_*" 
-  }
+
+[build.environment]
+  NODE_VERSION = "18"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_*"
 
 # Disable processing for client-side VITE_ variables
 [build.processing]

@@ -33,10 +33,13 @@ export interface Product {
 }
 
 // Format price in Naira
-export const formatPrice = (priceInKobo: number): string => {
-  // Convert kobo to Naira and format with 2 decimal places
-  const priceInNaira = (priceInKobo / 100).toFixed(2);
-  return `₦${priceInNaira.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+export const formatPrice = (priceInNaira: number): string => {
+  // Format price with 2 decimal places and thousand separators
+  const formattedPrice = priceInNaira.toLocaleString('en-NG', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `₦${formattedPrice}`;
 };
 
 // Convert Naira to kobo for storage

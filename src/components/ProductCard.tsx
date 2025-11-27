@@ -108,7 +108,7 @@ const ProductCard = ({ id, name, price, image, category, stock }: ProductCardPro
               )}
             </div>
             <div className="text-lg font-semibold">
-              ${price.toFixed(2)}
+              ₦{price.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           

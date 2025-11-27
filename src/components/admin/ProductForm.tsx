@@ -16,8 +16,8 @@ import { addProduct, updateProduct, getProductById, serverTimestamp } from '@/li
 import { string } from 'zod';
 
 // Price conversion functions
-const toKobo = (naira: number): number => Math.round(naira * 100);
-const toNaira = (kobo: number): number => kobo / 100;
+const toKobo = (naira: number): number => Math.round(naira * 1);
+const toNaira = (kobo: number): number => kobo / 1;
 
 // Define the Product interface
 export interface Product {
@@ -236,11 +236,13 @@ export function ProductForm({ isEdit = false }: ProductFormProps) {
           description: 'Failed to load product data',
           variant: 'destructive',
         });
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProduct();
-  }, [id, reset]);
+  }, [id, reset, toast]);
 
   const onSubmit = async (formData: ProductFormValues) => {
     if (loading) return; // Prevent double submission
@@ -248,9 +250,9 @@ export function ProductForm({ isEdit = false }: ProductFormProps) {
     setLoading(true);
     
     try {
-      // Basic validation
-      if (!imageUrl) { 
-        throw new Error('Product image is required'); 
+      // For new products, image is required. For updates, it's optional
+      if (!isEdit && !imageUrl) { 
+        throw new Error('Product image is required for new products'); 
       }
       
       // Convert price from Naira string to kobo for storage
@@ -283,14 +285,18 @@ export function ProductForm({ isEdit = false }: ProductFormProps) {
         
         // Only include fields that have changed
         const updateData: Partial<Product> = {
-          ...productData,
+          name: productData.name,
+          description: productData.description,
+          price: productData.price,
+          category: productData.category,
+          stock: productData.stock,
+          featured: productData.featured,
           updatedAt: serverTimestamp()
         };
         
-        // If there's a new image, it will be handled by updateProduct
-        // If not, make sure we don't overwrite the existing image
-        if (!formData.imageFile && !updateData.imageUrl) {
-          delete updateData.imageUrl; // Keep the existing image
+        // Only update image if a new one was uploaded
+        if (formData.imageFile || imageUrl) {
+          updateData.imageUrl = imageUrl || '';
         }
         
         console.log('Update data:', updateData);

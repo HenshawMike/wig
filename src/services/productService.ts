@@ -198,3 +198,21 @@ export const deleteProduct = async (id: string): Promise<void> => {
     throw error;
   }
 };
+
+export const reduceProductStock = async (id: string, quantity: number): Promise<void> => {
+  try {
+    const product = await getProductById(id);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    
+    const newStock = Math.max(0, product.stock - quantity);
+    await updateDoc(doc(db, PRODUCTS_COLLECTION, id), {
+      stock: newStock,
+      updatedAt: Timestamp.now(),
+    });
+  } catch (error) {
+    console.error('Error reducing product stock:', error);
+    throw error;
+  }
+};

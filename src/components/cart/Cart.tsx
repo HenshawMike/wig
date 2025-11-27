@@ -53,8 +53,9 @@ export function Cart() {
 
       const message = `Hello! I would like to place an order:\n\n*Customer Details:*\nName: ${customerName}\nPhone: ${customerPhone}\nAddress: ${customerAddress}\n\n*Order Items:*\n${orderItems}\n\n*Total: ₦${totalPrice.toLocaleString('en-NG')}*\n\nPlease confirm this order. Thank you!`;
 
-      // Create WhatsApp link to your business number (09160556123 = 234916055612 in international format)
-      const whatsappLink = `https://wa.me/234916055612?text=${encodeURIComponent(message)}`;
+      // Create WhatsApp link to your business number from environment variable
+      const whatsappBusinessNumber = import.meta.env.VITE_WHATSAPP_BUSINESS_NUMBER || '234916055612';
+      const whatsappLink = `https://wa.me/${whatsappBusinessNumber}?text=${encodeURIComponent(message)}`;
       
       // Open WhatsApp
       window.open(whatsappLink, '_blank');

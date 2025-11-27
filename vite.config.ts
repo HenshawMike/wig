@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
         },
       },
       headers: {
-        'Access-Control-Allow-Origin': 'https://pecoaakhyazmexjbxsln.supabase.co',
+        'Access-Control-Allow-Origin': env.VITE_SUPABASE_URL || '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
         'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type, Authorization, Accept, Range',
         'Access-Control-Allow-Credentials': 'true',

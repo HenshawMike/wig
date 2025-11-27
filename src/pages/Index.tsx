@@ -57,7 +57,7 @@ const Index = () => {
               playsInline
               className="w-full h-full object-cover"
             >
-              <source src="public/videos/vid1.mp4" type="video/mp4" />
+              <source src="/videos/vid1.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
             <div className="absolute inset-0 bg-background/60" />
@@ -76,7 +76,7 @@ const Index = () => {
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 transform hover:scale-105 transition-transform duration-300 animate-fade-in animate-delay-100">
                 <div className="w-5 h-5 rounded-full overflow-hidden">
                   <img 
-                    src="public/images/logo*.jpg" 
+                    src="/images/logo*.jpg" 
                     alt="" 
                     className="w-full h-full object-cover"
                   />
@@ -112,7 +112,7 @@ const Index = () => {
               <div className="flex flex-col items-center justify-center gap-5 pt-8 animate-fade-in animate-delay-500">
                 <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-accent/30 p-1 bg-background">
                   <img 
-                    src="public/images/logo*.jpg" 
+                    src="/images/logo*.jpg" 
                     alt="Domtornyluxe Hairmpire Logo" 
                     className="w-full h-full object-cover rounded-full"
                   />

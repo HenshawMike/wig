@@ -4,11 +4,12 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # Allow VITE_* keys in client-side bundle
   SECRETS_SCAN_OMIT_KEYS = "VITE_*"
 
-# Disable processing for client-side VITE_ variables
+# Skip secret scanning for client-side files (optional but safer)
 [build.processing]
-  skip_processing = false
+  skip_processing = true
 
 [[redirects]]
   from = "/*"

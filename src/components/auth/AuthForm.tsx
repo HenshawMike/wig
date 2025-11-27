@@ -60,8 +60,8 @@ export function AuthForm({ type }: AuthFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-0 m-0">
-      <div className="w-full h-full max-w-none mx-0 bg-background shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+    <div className="min-h-screen w-full flex items-start md:items-center justify-center p-0 sm:p-6">
+      <div className="w-full h-screen md:h-auto md:max-h-[90vh] max-w-6xl mx-auto bg-background shadow-xl md:rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-2 overflow-y-auto">
         {/* Left side - Full screen image (hidden on mobile, visible on md+) */}
         <div className="hidden md:block relative w-full h-full">
           <img 
@@ -77,7 +77,7 @@ export function AuthForm({ type }: AuthFormProps) {
         </div>
         
         {/* Right side - Form */}
-        <div className="p-6 sm:p-8 flex flex-col justify-center">
+        <div className="p-6 sm:p-8 flex flex-col justify-start md:justify-center h-full overflow-y-auto">
           <div className="mx-auto w-full max-w-[350px]">
             {/* Circular Logo */}
             <div className="flex justify-center mb-9">

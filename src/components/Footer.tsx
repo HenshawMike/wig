@@ -13,7 +13,7 @@ const Footer = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-accent/30 p-0.5 bg-background">
                 <img 
-                  src="/src/assets/logo*.jpg" 
+                  src="public/images/logo*.jpg" 
                   alt="Domtornyluxe Hairmpire Logo" 
                   className="w-full h-full object-cover rounded-full"
                 />

@@ -11,11 +11,11 @@ export default defineConfig(({ mode }): UserConfig => {
 
   // Filter only the environment variables we want to expose to the client
   const clientSideEnv: Record<string, string> = {};
-  for (const [key, value] of Object.entries(env)) {
+  Object.entries(env).forEach(([key, value]) => {
     if (key.startsWith('VITE_')) {
       clientSideEnv[`import.meta.env.${key}`] = JSON.stringify(value);
     }
-  }
+  });
 
   return {
     // Environment variables exposed to the client
@@ -26,18 +26,42 @@ export default defineConfig(({ mode }): UserConfig => {
       'process.env': {}
     },
     
+    // Build configuration
+    build: {
+      // Increase chunk size warning limit
+      chunkSizeWarningLimit: 1000,
+      // Generate source maps for production
+      sourcemap: mode !== 'production',
+      // Minify with esbuild
+      minify: 'esbuild',
+      // Enable gzip compression
+      reportCompressedSize: true,
+      // Optimize dependencies
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Split vendor and app code
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            // Split firebase into separate chunk
+            firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+            // Split supabase into separate chunk
+            supabase: ['@supabase/supabase-js']
+          }
+        }
+      }
+    },
+    
     server: {
       host: "::",
       port: 8080,
       cors: {
         origin: [
-          env.VITE_APP_URL || 'http://localhost:8080',
-          env.VITE_SUPABASE_URL || 'http://localhost:3000'
-        ],
+          env.VITE_APP_URL,
+          env.VITE_SUPABASE_URL
+        ].filter(Boolean),
         credentials: true
       },
       proxy: {
-        // Proxy API requests to Supabase
         '/storage/v1': {
           target: env.VITE_SUPABASE_URL,
           changeOrigin: true,

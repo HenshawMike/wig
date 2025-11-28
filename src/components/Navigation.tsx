@@ -188,7 +188,6 @@ const Navigation = () => {
               )}
             </div>
           </div>
-          
           {/* Footer */}
           <div className="p-6 border-t border-border">
             <p className="text-sm text-muted-foreground">

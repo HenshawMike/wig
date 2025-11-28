@@ -21,18 +21,33 @@ export function Cart() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
 
+  // Format and validate WhatsApp number
+  const formatWhatsAppNumber = (number: string): string | null => {
+    if (!number) return null;
+    // Remove all non-digit characters
+    const digits = number.replace(/\D/g, '');
+    
+    // Check if number has country code, if not assume it's a Nigerian number (234)
+    if (digits.startsWith('0')) {
+      return '234' + digits.substring(1);
+    } else if (!digits.startsWith('234') && digits.length <= 10) {
+      return '234' + digits;
+    } else if (digits.startsWith('+')) {
+      return digits.substring(1);
+    }
+    return digits;
+  };
+
   const handleWhatsAppOrder = async () => {
     // Validation
     if (!customerName.trim()) {
       toast({ title: "Error", description: "Please enter your name" });
       return;
     }
-
     if (!customerPhone.trim()) {
       toast({ title: "Error", description: "Please enter your phone number" });
       return;
     }
-
     if (!customerAddress.trim()) {
       toast({ title: "Error", description: "Please enter your delivery address" });
       return;
@@ -46,28 +61,37 @@ export function Cart() {
         await reduceProductStock(item.id, item.quantity);
       }
 
-      // Create order message
-      const orderItems = items
-        .map((item) => `• ${item.name} x${item.quantity} - ₦${(item.price * item.quantity).toLocaleString('en-NG')}`)
-        .join('\n');
+      // Format phone number (add country code if missing)
+      const formatPhoneNumber = (number: string) => {
+        const digits = number.replace(/\D/g, "");
+        if (digits.startsWith("0")) return "234" + digits.substring(1);
+        if (!digits.startsWith("234") && digits.length <= 10) return "234" + digits;
+        return digits;
+      };
 
-      const message = `Hello! I would like to place an order:\n\n*Customer Details:*\nName: ${customerName}\nPhone: ${customerPhone}\nAddress: ${customerAddress}\n\n*Order Items:*\n${orderItems}\n\n*Total: ₦${totalPrice.toLocaleString('en-NG')}*\n\nPlease confirm this order. Thank you!`;
-
-      // Create WhatsApp link to your business number from environment variable
-      if (!import.meta.env.VITE_WHATSAPP_BUSINESS_NUMBER) {
-        throw new Error('WhatsApp business number is not configured');
-      }
-      const whatsappLink = `https://wa.me/${import.meta.env.VITE_WHATSAPP_BUSINESS_NUMBER}?text=${encodeURIComponent(message)}`;
+      const phoneNumber = formatPhoneNumber("08123456789"); // Your WhatsApp number
       
-      // Open WhatsApp
-      window.open(whatsappLink, '_blank');
+      // Build the order message
+      let message = `New Order from ${customerName}\n`;
+      message += `Phone: ${customerPhone}\n`;
+      message += `Address: ${customerAddress}\n\n`;
+      message += "*Order Items:*\n";
+      
+      items.forEach(item => {
+        message += `• ${item.name} (x${item.quantity}) - ₦${(item.price * item.quantity).toLocaleString("en-NG")}\n`;
+      });
+      
+      message += `\n*Total: ₦${totalPrice.toLocaleString("en-NG")}*`;
+      message += "\n\nPlease confirm this order. Thank you!";
 
-      // Clear cart and reset form
+      // Redirect to WhatsApp with the order details
+      window.location.href = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+      // Clear cart and form
       toast({
         title: "Order Sent!",
         description: "Stock updated and opening WhatsApp to complete your order.",
       });
-      
       clearCart();
       setShowCheckoutForm(false);
       setCustomerName("");
@@ -75,9 +99,19 @@ export function Cart() {
       setCustomerAddress("");
     } catch (error) {
       console.error("Error processing order:", error);
+      let errorMessage = "Failed to process order. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch') || !navigator.onLine) {
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        } else if (error.message.includes('Invalid WhatsApp number')) {
+          errorMessage = "Invalid WhatsApp number configuration. Please contact support.";
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to process order. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

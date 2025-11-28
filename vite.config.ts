@@ -4,15 +4,30 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
+// List of safe environment variables that can be exposed to the client
+const PUBLIC_ENV_KEYS = [
+  'VITE_APP_NAME',
+  'VITE_APP_URL',
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID',
+  'VITE_FIREBASE_MEASUREMENT_ID',
+  'VITE_SUPABASE_URL',
+  'VITE_SUPABASE_ANON_KEY'
+];
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }): UserConfig => {
   // Only load VITE_ prefixed environment variables
   const env = loadEnv(mode, process.cwd(), 'VITE_');
 
-  // Filter only the environment variables we want to expose to the client
+  // Filter only the explicitly allowed environment variables
   const clientSideEnv: Record<string, string> = {};
   Object.entries(env).forEach(([key, value]) => {
-    if (key.startsWith('VITE_')) {
+    if (PUBLIC_ENV_KEYS.includes(key)) {
       clientSideEnv[`import.meta.env.${key}`] = JSON.stringify(value);
     }
   });
@@ -20,7 +35,7 @@ export default defineConfig(({ mode }): UserConfig => {
   return {
     // Environment variables exposed to the client
     define: {
-      // Only expose VITE_ prefixed env variables
+      // Only expose explicitly allowed env variables
       ...clientSideEnv,
       // Prevent exposing process.env
       'process.env': {}

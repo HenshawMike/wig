@@ -1,20 +1,41 @@
 /// <reference types="vite/client" />
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, type UserConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current working directory.
+export default defineConfig(({ mode }): UserConfig => {
   // Only load VITE_ prefixed environment variables
   const env = loadEnv(mode, process.cwd(), 'VITE_');
 
+  // Filter only the environment variables we want to expose to the client
+  const clientSideEnv: Record<string, string> = {};
+  for (const [key, value] of Object.entries(env)) {
+    if (key.startsWith('VITE_')) {
+      clientSideEnv[`import.meta.env.${key}`] = JSON.stringify(value);
+    }
+  }
+
   return {
+    // Environment variables exposed to the client
+    define: {
+      // Only expose VITE_ prefixed env variables
+      ...clientSideEnv,
+      // Prevent exposing process.env
+      'process.env': {}
+    },
+    
     server: {
       host: "::",
       port: 8080,
-      cors: true,
+      cors: {
+        origin: [
+          env.VITE_APP_URL || 'http://localhost:8080',
+          env.VITE_SUPABASE_URL || 'http://localhost:3000'
+        ],
+        credentials: true
+      },
       proxy: {
         // Proxy API requests to Supabase
         '/storage/v1': {

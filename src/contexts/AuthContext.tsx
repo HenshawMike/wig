@@ -206,8 +206,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       navigate('/');
     } catch (error: any) {
-      console.error('Google sign in error:', error);
-      let errorMessage = 'Failed to sign in with Google';
+      console.error('Google sign in error:', {
+        code: error?.code,
+        message: error?.message,
+        details: error
+      });
+      
+      // Default error message
+      let errorMessage = `Failed to sign in with Google: ${error?.message || 'Unknown error'}`;
       
       if (error.code === 'auth/account-exists-with-different-credential') {
         errorMessage = 'An account already exists with the same email but different sign-in credentials';

@@ -58,7 +58,9 @@ export function Cart() {
     try {
       // Reduce stock for each item
       for (const item of items) {
-        await reduceProductStock(item.id, item.quantity);
+        await reduceProductStock(item.id, item.quantity)
+          .catch(err => toast({ title: "Error", description: `${error}` }))
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       }
 
       // Format phone number (add country code if missing)
@@ -99,7 +101,7 @@ export function Cart() {
       setCustomerAddress("");
     } catch (error) {
       console.error("Error processing order:", error);
-      let errorMessage = `${error}`
+      let errorMessage = `${error }`;
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch') || !navigator.onLine) {

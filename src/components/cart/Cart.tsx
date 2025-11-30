@@ -59,8 +59,7 @@ export function Cart() {
       // Reduce stock for each item
       for (const item of items) {
         await reduceProductStock(item.id, item.quantity)
-          .catch(err => toast({ title: "Error", description: `${err}` }))
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+          .catch(() => {});
       }
 
       // Format phone number (add country code if missing)

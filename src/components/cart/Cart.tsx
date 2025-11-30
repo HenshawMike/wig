@@ -69,7 +69,14 @@ export function Cart() {
         return digits;
       };
 
-      const phoneNumber = formatPhoneNumber("08123456789"); // Your WhatsApp number
+      const businessNumber = import.meta.env.VITE_WHATSAPP_BUSINESS_NUMBER;
+      const phoneNumber = formatWhatsAppNumber(businessNumber as string);
+
+      if (!phoneNumber) {
+        toast({ title: "Error", description: "Business WhatsApp number is not configured.", variant: "destructive" });
+        setIsProcessing(false);
+        return;
+      }
       
       // Build the order message
       let message = `New Order from ${customerName}\n`;
@@ -85,7 +92,9 @@ export function Cart() {
       message += "\n\nPlease confirm this order. Thank you!";
 
       // Redirect to WhatsApp with the order details
-      window.location.href = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, "_blank");
+
 
       // Clear cart and form
       toast({

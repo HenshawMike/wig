@@ -205,22 +205,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       navigate('/');
-    } catch (error: any) {
-      console.error('Google sign in error:', {
-        code: error?.code,
-        message: error?.message,
-        details: error
-      });
+    } catch (error: unknown) {
+      // Log the full error for debugging
+      console.error('Google sign in error:', error);
       
-      // Default error message
-      let errorMessage = `Failed to sign in with Google: ${error?.message || 'Unknown error'}`;
+      // Initialize default error message
+      let errorMessage = 'Failed to sign in with Google';
       
-      if (error.code === 'auth/account-exists-with-different-credential') {
-        errorMessage = 'An account already exists with the same email but different sign-in credentials';
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        // User closed the popup, no need to show an error
-        setLoading(false);
-        return;
+      // Safely extract error information
+      if (error && typeof error === 'object') {
+        const firebaseError = error as { code?: string; message?: string };
+        
+        // Update error message with more details if available
+        if (firebaseError.message) {
+          errorMessage += `: ${firebaseError.message}`;
+        }
+        
+        // Handle specific error cases
+        if (firebaseError.code === 'auth/account-exists-with-different-credential') {
+          errorMessage = 'An account already exists with the same email but different sign-in credentials';
+        } else if (firebaseError.code === 'auth/popup-closed-by-user') {
+          // User closed the popup, no need to show an error
+          setLoading(false);
+          return;
+        }
+      } else {
+        // Fallback for non-object errors
+        errorMessage += ': An unknown error occurred';
+        console.error('Non-standard error object received:', error);
       }
       
       toast({

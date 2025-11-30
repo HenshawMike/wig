@@ -99,7 +99,7 @@ export function Cart() {
       setCustomerAddress("");
     } catch (error) {
       console.error("Error processing order:", error);
-      let errorMessage = "Failed to process order. Please try again.";
+      let errorMessage = `${error}`
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch') || !navigator.onLine) {

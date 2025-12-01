@@ -139,7 +139,7 @@ const Index = () => {
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold mb-4">Experience the Difference</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Our wigs are crafted with precision and care, ensuring you look and feel your absolute best.
+                Our extentions are crafted with precision and care, ensuring you look and feel your absolute best.
               </p>
             </div>
             

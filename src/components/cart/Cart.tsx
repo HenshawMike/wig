@@ -70,7 +70,7 @@ export function Cart() {
         return digits;
       };
 
-      const phoneNumber = formatPhoneNumber("08123456789"); // Your WhatsApp number
+      const phoneNumber = formatPhoneNumber("08147188319"); // Your WhatsApp number
       
       // Build the order message
       let message = `New Order from ${customerName}\n`;

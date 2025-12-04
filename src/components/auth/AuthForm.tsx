@@ -28,13 +28,15 @@ export function AuthForm({ type }: AuthFormProps) {
   const linkHref = isLogin ? '/signup' : '/login';
   const linkActionText = isLogin ? 'Sign up' : 'Sign in';
 
-  const handleGoogleSignIn = () => {
-    setIsLoading(true);
-    signInWithGoogle().catch(() => {
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await signInWithGoogle();
+    } catch (error) {
       // Error is already handled in the AuthContext
-    }).finally(() => {
+    } finally {
       setIsLoading(false);
-    });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -47,6 +47,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Handle redirect result from Google Sign-In
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          // Check if user is admin
+          const adminStatus = await isAdmin(result.user.uid);
+          setUserIsAdmin(adminStatus);
+          
+          // Update user data
+          const userData = {
+            uid: result.user.uid,
+            email: result.user.email,
+            displayName: result.user.displayName,
+            isAdmin: adminStatus,
+            photoURL: result.user.photoURL
+          };
+          setUser(userData);
+          
+          // Redirect to the original path or home
+          const redirectPath = sessionStorage.getItem('redirectAfterSignIn') || '/';
+          sessionStorage.removeItem('redirectAfterSignIn');
+          navigate(redirectPath);
+          
+          toast({
+            title: 'Success!',
+            description: 'Successfully signed in with Google!',
+          });
+        }
+      } catch (error) {
+        console.error('Error handling redirect result:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to sign in with Google. Please try again.',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    handleRedirectResult();
+    
     // Subscribe to Firebase auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -70,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [navigate, toast]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -193,11 +236,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       const provider = new GoogleAuthProvider();
+      
       // Add additional scopes here if needed
       // provider.addScope('https://www.googleapis.com/auth/userinfo.email');
       // provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
       
-      await signInWithPopup(auth, provider);
+      // First try with popup
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (popupError: any) {
+        // If popup is blocked, try with redirect
+        if (popupError.code === 'auth/popup-blocked' || popupError.code === 'auth/popup-closed-by-user') {
+          // Store the current path to redirect back after sign in
+          sessionStorage.setItem('redirectAfterSignIn', window.location.pathname);
+          await signInWithRedirect(auth, provider);
+          return; // The rest will be handled by the redirect result listener
+        }
+        throw popupError; // Re-throw if it's a different error
+      }
       
       toast({
         title: 'Success!',
